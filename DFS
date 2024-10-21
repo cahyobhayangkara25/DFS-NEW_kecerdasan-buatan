@@ -1,0 +1,67 @@
+from collections import deque
+
+# Fungsi untuk memeriksa apakah kondisi target tercapai
+def is_goal(state, target):
+    return target in state
+
+# Fungsi untuk mendapatkan semua langkah yang mungkin dari suatu keadaan
+def get_next_states(state, jug1_capacity, jug2_capacity):
+    x, y = state  # x untuk gelas pertama, y untuk gelas kedua
+    states = []
+
+    # Isi penuh gelas 1 atau 2
+    states.append((jug1_capacity, y))
+    states.append((x, jug2_capacity))
+
+    # Kosongkan gelas 1 atau 2
+    states.append((0, y))
+    states.append((x, 0))
+
+    # Tuangkan air dari gelas 1 ke gelas 2
+    pour_to_jug2 = min(x, jug2_capacity - y)
+    states.append((x - pour_to_jug2, y + pour_to_jug2))
+
+    # Tuangkan air dari gelas 2 ke gelas 1
+    pour_to_jug1 = min(y, jug1_capacity - x)
+    states.append((x + pour_to_jug1, y - pour_to_jug1))
+
+    return states
+
+# Fungsi BFS untuk mencari solusi
+def bfs(jug1_capacity, jug2_capacity, target):
+    # Antrian untuk BFS (menyimpan state dan urutan langkah)
+    queue = deque([((0, 0), [])])
+    visited = set()  # Untuk melacak state yang sudah dikunjungi
+
+    while queue:
+        (current_state, path) = queue.popleft()
+
+        if current_state in visited:
+            continue  # Lewati jika sudah pernah dikunjungi
+
+        visited.add(current_state)
+
+        # Periksa apakah kondisi target tercapai
+        if is_goal(current_state, target):
+            return path + [current_state]  # Kembalikan urutan langkah
+
+        # Periksa semua kemungkinan langkah dari keadaan saat ini
+        for next_state in get_next_states(current_state, jug1_capacity, jug2_capacity):
+            if next_state not in visited:
+                queue.append((next_state, path + [current_state]))
+
+    return None  # Jika tidak ada solusi
+
+# Contoh penggunaan
+jug1_capacity = 4  # Kapasitas gelas pertama
+jug2_capacity = 3  # Kapasitas gelas kedua
+target = 2         # Jumlah air yang ingin dicapai
+
+solution = bfs(jug1_capacity, jug2_capacity, target)
+
+if solution:
+    print("Langkah-langkah untuk mencapai target:")
+    for step in solution:
+        print(step)
+else:
+    print("Tidak ada solusi untuk mencapai target.")
